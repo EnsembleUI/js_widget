@@ -4,11 +4,12 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 ///
-///A Chart library based on [High Charts (.JS)](https://www.highcharts.com/)
+///A generic library for exposing javascript widgets in Flutter webview.
+///Took https://github.com/senthilnasa/high_chart as a start and genericized it
 ///
 class JsWidget extends StatefulWidget {
   const JsWidget(
-      { required this.htmlTag,
+      { required this.createHtmlTag,
         required this.data,
         required this.scriptToInstantiate,
         required this.size,
@@ -23,49 +24,13 @@ class JsWidget extends StatefulWidget {
   ///
   ///Defaults to `CircularProgressIndicator`
   final Widget loader;
-
-  ///Chart data
-  ///
-  ///(use `jsonEncode` if the data is in `Map<String,dynamic>`)
-  ///
-  ///Reference: [High Charts API](https://api.highcharts.com/highcharts)
-  ///
-  ///```dart
-  ///String chart_data = '''{
-  ///      title: {
-  ///          text: 'Combination chart'
-  ///      },
-  ///      xAxis: {
-  ///          categories: ['Apples', 'Oranges', 'Pears', 'Bananas', 'Plums']
-  ///      },
-  ///      labels: {
-  ///          items: [{
-  ///              html: 'Total fruit consumption',
-  ///              style: {
-  ///                  left: '50px',
-  ///                  top: '18px',
-  ///                  color: (
-  ///                      Highcharts.defaultOptions.title.style &&
-  ///                      Highcharts.defaultOptions.title.style.color
-  ///                  ) || 'black'
-  ///              }
-  ///          }]
-  ///      },
-  ///
-  ///      ...
-  ///
-  ///    }''';
-  ///
-  ///```
-  ///
-  ///Reference: [High Charts API](https://api.highcharts.com/highcharts)
-  final String scriptToInstantiate;
-  final String htmlTag;
+  final Function scriptToInstantiate;
+  final Function createHtmlTag;
   final String data;
 
-  ///Chart size
+  ///Widget size
   ///
-  ///Height and width of the chart is required
+  ///Height and width of the widget is required
   ///
   ///```dart
   ///Size size = Size(400, 300);
@@ -73,33 +38,6 @@ class JsWidget extends StatefulWidget {
   final Size size;
 
   ///Scripts to be loaded
-  ///
-  ///Url's of the hightchart js scripts.
-  ///
-  ///Reference: [Full Scripts list](https://code.highcharts.com/)
-  ///
-  ///or use any CDN hosted script
-  ///
-  ///### For `android` and `ios` platforms, the scripts must be provided
-  ///
-  ///```dart
-  ///List<String> scripts = [
-  ///  'https://code.highcharts.com/highcharts.js',
-  ///  'https://code.highcharts.com/modules/exporting.js',
-  ///  'https://code.highcharts.com/modules/export-data.js'
-  /// ];
-  /// ```
-  ///
-  ///### For `web` platform, the scripts must be provided in `web/index.html`
-  ///
-  ///```html
-  ///<head>
-  ///   <script src="https://code.highcharts.com/highcharts.js"></script>
-  ///   <script src="https://code.highcharts.com/modules/exporting.js"></script>
-  ///   <script src="https://code.highcharts.com/modules/export-data.js"></script>
-  ///</head>
-  ///```
-  ///
   final List<String> scripts;
   @override
   JsWidgetState createState() => JsWidgetState();
@@ -167,7 +105,7 @@ class JsWidgetState extends State<JsWidget> {
   void _loadHtmlContent(WebViewController _) {
     String html = "";
     html +=
-    '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0"/> </head> <body>${widget.htmlTag}';
+    '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0"/> </head> <body>${widget.createHtmlTag()}';
     for (String src in widget.scripts) {
       html += '<script async="false" src="$src"></script>';
     }
@@ -183,7 +121,7 @@ class JsWidgetState extends State<JsWidget> {
       ${widget.data}
     ''');
     _controller!.runJavascript('''
-      ${widget.scriptToInstantiate}
+      ${widget.scriptToInstantiate()}
    ''');
   }
 }
