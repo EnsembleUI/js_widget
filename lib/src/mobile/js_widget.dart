@@ -118,10 +118,7 @@ class JsWidgetState extends State<JsWidget> {
       _isLoaded = true;
     });
     _controller!.runJavascript('''
-      ${widget.data}
-    ''');
-    _controller!.runJavascript('''
-      ${widget.scriptToInstantiate()}
+      ${widget.scriptToInstantiate(widget.data)}
    ''');
   }
 }

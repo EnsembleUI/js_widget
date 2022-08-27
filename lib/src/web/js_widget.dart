@@ -9,8 +9,8 @@ import 'js.dart';
 ///A generic library for exposing javascript widgets in Flutter webview.
 ///Took https://github.com/senthilnasa/high_chart as a start and genericized it
 ///
-class HighCharts extends StatefulWidget {
-  const HighCharts(
+class JsWidget extends StatefulWidget {
+  const JsWidget(
       {required this.createHtmlTag,
         required this.data,
         required this.scriptToInstantiate,
@@ -44,14 +44,14 @@ class HighCharts extends StatefulWidget {
   ///Scripts to be loaded
   final List<String> scripts;
   @override
-  _HighChartsState createState() => _HighChartsState();
+  JsWidgetState createState() => JsWidgetState();
 }
 
-class _HighChartsState extends State<HighCharts> {
+class JsWidgetState extends State<JsWidget> {
   final String _htmlId =
       "JsWidgetId" + (Random().nextInt(900000) + 100000).toString();
   @override
-  void didUpdateWidget(covariant HighCharts oldWidget) {
+  void didUpdateWidget(covariant JsWidget oldWidget) {
     if (oldWidget.data != widget.data ||
         oldWidget.size != widget.size ||
         oldWidget.scripts != widget.scripts ||
@@ -84,7 +84,7 @@ class _HighChartsState extends State<HighCharts> {
 
   void _load() {
     Future.delayed(const Duration(milliseconds: 250), () {
-      eval('${widget.scriptToInstantiate(_htmlId)}');
+      eval(widget.scriptToInstantiate(widget.data,_htmlId));
     });
   }
 }
