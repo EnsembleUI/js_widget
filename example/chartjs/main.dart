@@ -23,6 +23,27 @@ class ExampleChart extends StatefulWidget {
 }
 
 class _ExampleChartState extends State<ExampleChart> {
+  final String config = '''
+    {
+    type: 'line',
+    data: {
+      labels: [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+    ],
+    datasets: [{
+      label: 'My First dataset',
+      backgroundColor: 'rgb(255, 99, 132)',
+      borderColor: 'rgb(255, 99, 132)',
+      data: [0, 10, 5, 2, 20, 30, 45],
+    }]
+  },
+    options: {}
+  }''';
   final String _chartData = '''
   const labels = [
     'January',
@@ -45,7 +66,22 @@ class _ExampleChartState extends State<ExampleChart> {
 
   const config = {
     type: 'line',
-    data: data,
+    data: {
+      labels: [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+    ],
+    datasets: [{
+      label: 'My First dataset',
+      backgroundColor: 'rgb(255, 99, 132)',
+      borderColor: 'rgb(255, 99, 132)',
+      data: [0, 10, 5, 2, 20, 30, 45],
+    }]
+  },
     options: {}
   };
   
@@ -60,17 +96,14 @@ class _ExampleChartState extends State<ExampleChart> {
         title: const Text('ChartJs Example App'),
       ),
       body: JsWidget(
-        createHtmlTag: ({htmlId='chartJs'}) => ''' <div style="height:100%;width:100%;" id="${htmlId}Div"><canvas id="${htmlId}"></canvas></div>''',
-        scriptToInstantiate: ({htmlId='chartJs'}) => '''const myChart = new Chart(
-              document.getElementById('$htmlId'),
-              config
-            );''',
+        createHtmlTag: ([htmlId='chartJs']) => ''' <div style="height:100%;width:100%;" id="${htmlId}Div"><canvas id="$htmlId"></canvas></div>''',
+        scriptToInstantiate: (String c, [htmlId='chartJs']) => '''const myChart = new Chart(document.getElementById('$htmlId'),$c);''',
         loader: const SizedBox(
           child: LinearProgressIndicator(),
           width: 200,
         ),
         size: const Size(400, 400),
-        data: _chartData,
+        data: config,
         scripts: const [
           "https://cdn.jsdelivr.net/npm/chart.js",
         ],
