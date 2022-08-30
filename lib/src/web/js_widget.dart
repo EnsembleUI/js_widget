@@ -11,7 +11,8 @@ import 'js.dart';
 ///
 class JsWidget extends StatefulWidget {
   const JsWidget(
-      {required this.createHtmlTag,
+      { required this.id,
+        required this.createHtmlTag,
         required this.data,
         required this.scriptToInstantiate,
         required this.size,
@@ -28,6 +29,7 @@ class JsWidget extends StatefulWidget {
   final Widget loader;
 
   ///Widget data
+  final String id;
   final Function scriptToInstantiate;
   final Function createHtmlTag;
   final String data;
@@ -48,8 +50,6 @@ class JsWidget extends StatefulWidget {
 }
 
 class JsWidgetState extends State<JsWidget> {
-  final String _htmlId =
-      "JsWidgetId" + (Random().nextInt(900000) + 100000).toString();
   @override
   void didUpdateWidget(covariant JsWidget oldWidget) {
     if (oldWidget.data != widget.data ||
@@ -70,21 +70,22 @@ class JsWidgetState extends State<JsWidget> {
   @override
   Widget build(BuildContext context) {
     // ignore: undefined_prefixed_name
-    ui.platformViewRegistry.registerViewFactory(_htmlId, (int viewId) {
-      final html.Element element = html.Element.html(widget.createHtmlTag(_htmlId));
+    ui.platformViewRegistry.registerViewFactory(widget.id, (int viewId) {
+      final html.Element element = html.Element.html(widget.createHtmlTag());
       return element;
     });
 
     return SizedBox(
       height: widget.size.height,
       width: widget.size.width,
-      child: HtmlElementView(viewType: _htmlId),
+      child: HtmlElementView(viewType: widget.id),
     );
   }
 
   void _load() {
     Future.delayed(const Duration(milliseconds: 250), () {
-      eval(widget.scriptToInstantiate(widget.data,_htmlId));
+      String str = widget.scriptToInstantiate(widget.data);
+      eval(str);
     });
   }
 }

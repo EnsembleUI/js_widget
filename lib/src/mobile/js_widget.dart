@@ -9,7 +9,8 @@ import 'package:webview_flutter/webview_flutter.dart';
 ///
 class JsWidget extends StatefulWidget {
   const JsWidget(
-      { required this.createHtmlTag,
+      { required this.id,
+        required this.createHtmlTag,
         required this.data,
         required this.scriptToInstantiate,
         required this.size,
@@ -24,6 +25,7 @@ class JsWidget extends StatefulWidget {
   ///
   ///Defaults to `CircularProgressIndicator`
   final Widget loader;
+  final String id;
   final Function scriptToInstantiate;
   final Function createHtmlTag;
   final String data;
