@@ -8,7 +8,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 ///Took https://github.com/senthilnasa/high_chart as a start and genericized it
 ///
 class JsWidget extends StatefulWidget {
-  const JsWidget(
+  JsWidget(
       { required this.id,
         required this.createHtmlTag,
         required this.data,
@@ -16,6 +16,7 @@ class JsWidget extends StatefulWidget {
         required this.size,
         this.loader = const Center(child: CircularProgressIndicator()),
         this.scripts = const [],
+        this.listener,
         Key? key})
       : super(key: key);
 
@@ -29,6 +30,7 @@ class JsWidget extends StatefulWidget {
   final Function scriptToInstantiate;
   final Function createHtmlTag;
   final String data;
+  Function(String msg)? listener;
 
   ///Widget size
   ///

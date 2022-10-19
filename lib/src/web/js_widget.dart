@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:html' as html;
 import 'dart:math';
 import 'dart:ui' as ui;
@@ -10,7 +11,7 @@ import 'js.dart';
 ///Took https://github.com/senthilnasa/high_chart as a start and genericized it
 ///
 class JsWidget extends StatefulWidget {
-  const JsWidget(
+  JsWidget(
       { required this.id,
         required this.createHtmlTag,
         required this.data,
@@ -18,6 +19,7 @@ class JsWidget extends StatefulWidget {
         required this.size,
         this.loader = const CircularProgressIndicator(),
         this.scripts = const [],
+        this.listener,
         Key? key})
       : super(key: key);
 
@@ -33,6 +35,7 @@ class JsWidget extends StatefulWidget {
   final Function scriptToInstantiate;
   final Function createHtmlTag;
   final String data;
+  Function(String msg)? listener;
 
   ///Widget size
   ///
@@ -47,9 +50,33 @@ class JsWidget extends StatefulWidget {
   final List<String> scripts;
   @override
   JsWidgetState createState() => JsWidgetState();
+  static void evalScript(String script) {
+    eval(script);
+  }
 }
 
 class JsWidgetState extends State<JsWidget> {
+  static Map<String, Function(String msg)> listeners = {};
+  static void addListener(String id,Function(String msg) listener) {
+    listeners[id] = listener;
+  }
+  static Function(String msg)? removeListenersWithId (String id) {
+    return listeners.remove(id);
+  }
+  static Function(String msg)? removeListener(String id, Function(String msg) listener) {
+    for ( int i=listeners.keys.length-1;i>=0;i-- ) {
+      if ( listeners[listeners.keys.elementAt(i)] == listener ) {
+        return listeners.remove(listeners.keys.elementAt(i));
+      }
+    }
+    return null;
+  }
+  static void globalListener(String id, String msg) {
+    if ( listeners.containsKey(id) ) {
+      Function(String msg) f = listeners[id]!;
+      f.call(msg);
+    }
+  }
   @override
   void didUpdateWidget(covariant JsWidget oldWidget) {
     if (oldWidget.data != widget.data ||
@@ -63,29 +90,37 @@ class JsWidgetState extends State<JsWidget> {
 
   @override
   void initState() {
+    if ( widget.listener != null ) {
+      addListener(widget.id, widget.listener!);
+      init(globalListener);
+    }
     _load();
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(widget.id, (int viewId) {
       final html.Element element = html.Element.html(widget.createHtmlTag());
       return element;
     });
-
+    super.initState();
+  }
+  @override
+  void dispose() {
+    removeListenersWithId(widget.id);
+    super.dispose();
+  }
+  @override
+  Widget build(BuildContext context) {
     return SizedBox(
       height: widget.size.height,
       width: widget.size.width,
-      child: HtmlElementView(viewType: widget.id),
+      child: HtmlElementView(viewType: widget.id)
     );
   }
 
-  void _load() {
-    Future.delayed(const Duration(milliseconds: 250), () {
+  Future<bool> _load() {
+    return Future<bool>.delayed(const Duration(milliseconds: 250), () {
       String str = widget.scriptToInstantiate(widget.data);
       eval(str);
+      return true;
     });
   }
 }
