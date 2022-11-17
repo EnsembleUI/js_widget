@@ -44,8 +44,8 @@ class JsWidget extends StatefulWidget {
   final List<String> scripts;
   @override
   JsState createState() => JsState();
+  void evalScript(String script) {}
 }
-
 class JsState extends State<JsWidget> {
   @override
   Widget build(BuildContext context) {

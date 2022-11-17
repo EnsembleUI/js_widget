@@ -50,7 +50,7 @@ class JsWidget extends StatefulWidget {
   final List<String> scripts;
   @override
   JsWidgetState createState() => JsWidgetState();
-  static void evalScript(String script) {
+  void evalScript(String script) {
     eval(script);
   }
 }

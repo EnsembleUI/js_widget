@@ -45,13 +45,34 @@ class JsWidget extends StatefulWidget {
   final List<String> scripts;
   @override
   JsWidgetState createState() => JsWidgetState();
+  Function? eval;
+  void evalScript(String script) {
+    if ( eval != null ) {
+      eval!(script);
+    }
+  }
 }
 
 class JsWidgetState extends State<JsWidget> {
   bool _isLoaded = false;
-
   WebViewController? _controller;
 
+  @override
+  void initState() {
+    widget.eval = evalScript;
+    super.initState();
+  }
+  @override
+  void dispose() {
+    widget.eval = null;
+    super.dispose();
+  }
+  void evalScript(String script) {
+    if ( _controller == null ) {
+      throw Exception("webview is not available as _controller is null. Cannot call evalScript");
+    }
+    _controller!.runJavascript(script);
+  }
   @override
   void didUpdateWidget(covariant JsWidget oldWidget) {
     if (oldWidget.data != widget.data ||
