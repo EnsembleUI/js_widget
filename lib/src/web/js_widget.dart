@@ -116,10 +116,13 @@ class JsWidgetState extends State<JsWidget> {
     );
   }
 
+
   Future<bool> _load() {
     return Future<bool>.delayed(const Duration(milliseconds: 250), () {
-      String str = widget.scriptToInstantiate(widget.data);
-      eval(str);
+      String? str = widget.scriptToInstantiate(widget.data);
+      if ( str != null && str.isNotEmpty ) {
+        eval(str);
+      }
       return true;
     });
   }
