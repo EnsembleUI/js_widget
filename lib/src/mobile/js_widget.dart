@@ -1,6 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+// Import for Android features.
+import 'package:webview_flutter_android/webview_flutter_android.dart';
+// Import for iOS features.
+import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 ///
@@ -55,12 +58,52 @@ class JsWidget extends StatefulWidget {
 
 class JsWidgetState extends State<JsWidget> {
   bool _isLoaded = false;
-  WebViewController? _controller;
+  late final WebViewController controller;
+  void instantiateController() {
+    PlatformWebViewControllerCreationParams params;
+    if (WebViewPlatform.instance is WebKitWebViewPlatform) {
+      params = WebKitWebViewControllerCreationParams(
+        allowsInlineMediaPlayback: true,
+        mediaTypesRequiringUserAction: const <PlaybackMediaTypes>{},
+      );
+    } else {
+      params = const PlatformWebViewControllerCreationParams();
+    }
+    // #docregion webview_controller
+    controller = WebViewController.fromPlatformCreationParams(params)
+      ..setBackgroundColor(Colors.transparent)
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onProgress: (int progress) {
+            // Update loading bar.
+          },
 
+          onPageStarted: (String url) {},
+          onPageFinished: (String url) {
+            _loadData();
+          },
+          onWebResourceError: (WebResourceError error) {
+            debugPrint(error.toString());
+          },
+          onNavigationRequest: (NavigationRequest request) async {
+            return NavigationDecision.navigate;
+          },
+        ),
+      )
+      ..loadHtmlString(getHtmlContent());
+    if (controller.platform is AndroidWebViewController) {
+      AndroidWebViewController.enableDebugging(true);
+      (controller.platform as AndroidWebViewController)
+          .setMediaPlaybackRequiresUserGesture(false);
+    }
+    // #enddocregion webview_controller
+  }
   @override
   void initState() {
-    widget.eval = evalScript;
     super.initState();
+    instantiateController();
+    widget.eval = evalScript;
   }
   @override
   void dispose() {
@@ -68,17 +111,14 @@ class JsWidgetState extends State<JsWidget> {
     super.dispose();
   }
   void evalScript(String script) {
-    if ( _controller == null ) {
-      throw Exception("webview is not available as _controller is null. Cannot call evalScript");
-    }
-    _controller!.runJavascript(script);
+    controller.runJavaScript(script);
   }
   @override
   void didUpdateWidget(covariant JsWidget oldWidget) {
     if (oldWidget.data != widget.data ||
         oldWidget.size != widget.size ||
         oldWidget.scripts != widget.scripts) {
-      _loadHtmlContent(_controller!);
+      controller.loadHtmlString(getHtmlContent());
     }
     super.didUpdateWidget(oldWidget);
   }
@@ -93,41 +133,12 @@ class JsWidgetState extends State<JsWidget> {
         fit: StackFit.expand,
         children: [
           !_isLoaded ? widget.loader : const SizedBox.shrink(),
-          WebView(
-            debuggingEnabled: kDebugMode,
-            allowsInlineMediaPlayback: true,
-            javascriptMode: JavascriptMode.unrestricted,
-            zoomEnabled: false,
-            initialMediaPlaybackPolicy: AutoMediaPlaybackPolicy.always_allow,
-            backgroundColor: Colors.transparent,
-            onWebViewCreated: (WebViewController _) {
-              _controller = _;
-              _loadHtmlContent(_);
-            },
-            onWebResourceError: (error) {
-              debugPrint(error.toString());
-            },
-            onPageFinished: (String url) {
-              _loadData();
-            },
-            navigationDelegate: (NavigationRequest request) async {
-              if (await canLaunchUrlString(request.url)) {
-                try {
-                  launchUrlString(request.url);
-                } catch (e) {
-                  debugPrint('JsWidget Error ->$e');
-                }
-                return NavigationDecision.prevent;
-              }
-              return NavigationDecision.navigate;
-            },
-          ),
+          WebViewWidget(controller: controller),
         ],
       ),
     );
   }
-
-  void _loadHtmlContent(WebViewController _) {
+  String getHtmlContent() {
     String html = "";
     html +=
     '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0"/> </head> <body>${widget.createHtmlTag()}';
@@ -135,14 +146,14 @@ class JsWidgetState extends State<JsWidget> {
       html += '<script async="false" src="$src"></script>';
     }
     html += '</body></html>';
-    _.loadHtmlString(html);
+    return html;
   }
 
   void _loadData() {
     setState(() {
       _isLoaded = true;
     });
-    _controller!.runJavascript('''
+    controller.runJavaScript('''
       ${widget.scriptToInstantiate(widget.data)}
    ''');
   }
