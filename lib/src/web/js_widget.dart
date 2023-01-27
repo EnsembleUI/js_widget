@@ -20,6 +20,7 @@ class JsWidget extends StatefulWidget {
         this.loader = const CircularProgressIndicator(),
         this.scripts = const [],
         this.listener,
+        this.preCreateScript,
         Key? key})
       : super(key: key);
 
@@ -34,6 +35,7 @@ class JsWidget extends StatefulWidget {
   final String id;
   final Function scriptToInstantiate;
   final Function createHtmlTag;
+  final Function? preCreateScript;
   final String data;
   Function(String msg)? listener;
 
@@ -94,7 +96,11 @@ class JsWidgetState extends State<JsWidget> {
       addListener(widget.id, widget.listener!);
       init(globalListener);
     }
+    if ( widget.preCreateScript != null ) {
+      eval(widget.preCreateScript!());
+    }
     _load();
+
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(widget.id, (int viewId) {
       final html.Element element = html.Element.html(widget.createHtmlTag());

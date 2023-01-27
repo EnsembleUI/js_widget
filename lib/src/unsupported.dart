@@ -14,6 +14,7 @@ class JsWidget extends StatefulWidget {
         this.loader = const Center(child: CircularProgressIndicator()),
         this.scripts = const [],
         this.listener,
+        this.preCreateScript,
         Key? key})
       : super(key: key);
 
@@ -28,6 +29,7 @@ class JsWidget extends StatefulWidget {
   final String id;
   final Function scriptToInstantiate;
   final Function createHtmlTag;
+  final Function? preCreateScript;
   final String data;
   Function(String msg)? listener;
 
